@@ -1,0 +1,40 @@
+.formSession {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+}
+
+.infoRoom {
+  display: flex;
+  gap: 10px;
+  margin-block: 15px;
+}
+
+.formSession input {
+  max-width: 200px;
+  font-weight: bold;
+  /* background: var(--bgComponents); */
+  background: transparent;
+  outline: 2px solid var(--bgComponents);
+}
+
+.formSession input::placeholder {
+  font-weight: bold;
+  color: rgba(245, 245, 245, 0.6);
+}
+
+.btnCreate {
+  outline: none;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  align-self: center;
+  padding: 5px 20px;
+  background: var(--colorHighlight);
+  font-weight: bold;
+  color: var(--bg);
+}

@@ -1,0 +1,32 @@
+.room {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 100vh;
+}
+
+.messageLink {
+  position: absolute;
+  left: 30px;
+  bottom: 80px;
+  background: var(--bg);
+  outline: 1px solid var(--bgComponents);
+  font-weight: bold;
+  color: var(--colorNeutral);
+  padding: 15px 25px;
+  border-radius: 5px;
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  max-width: 350px;
+}
+
+.messageLink button {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  background: var(--colorHighlight);
+  color: var(--bg);
+}

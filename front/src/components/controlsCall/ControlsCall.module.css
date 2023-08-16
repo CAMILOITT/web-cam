@@ -1,0 +1,31 @@
+/* controls */
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+
+.controls button {
+  --size: 50px;
+  display: grid;
+  place-content: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  padding: 10px;
+  background: #4782FF;
+}
+
+.controls button:last-child {
+  background: var(--colorError);
+}
+
+.controls button svg {
+  --size: 100%;
+  width: var(--size);
+  height: var(--size);
+}

@@ -1,21 +1,13 @@
-// import { server } from "./app"
-
 import { Server } from 'socket.io'
-
-// server.listen(3000, () => {
-//   console.log('listening on *:3000')
-// })
-
 import 'dotenv/config'
+import { PeerDescription, Room } from './types/socket/interface'
 
-const PORT = Number(process.env.PORT)||3000
+const PORT = Number(process.env.PORT) || 3000
 
 const io = new Server(PORT)
 
 io.on('connection', socket => {
-  console.log('a user connected', socket.id)
-
-  socket.on('createRoom', res => {
+  socket.on('createRoom', (res: Room) => {
     socket.join(res.idRoom)
   })
 
@@ -24,11 +16,23 @@ io.on('connection', socket => {
     socket.to(idRoom).emit('userJoin', userCall)
   })
 
-  socket.on('offer', (room, offer) => {
+  socket.on('offer', (room: string, offer: PeerDescription) => {
     socket.to(room).emit('offer', offer)
   })
 
-  socket.on('answer', (room, ans) => {
+  socket.on('answer', (room: string, ans: PeerDescription) => {
     socket.to(room).emit('answer', ans)
+  })
+
+  socket.on('sendCandidate', (room: string, candidate) => {
+    socket.to(room).emit('sendCandidate', candidate)
+  })
+
+  socket.on('endCall', (room: string) => {
+    socket.to(room).emit('endCall')
+  })
+
+  socket.on('infoRoom', (room: string, userCreated: string) => {
+    socket.to(room).emit('infoRoom', userCreated)
   })
 })

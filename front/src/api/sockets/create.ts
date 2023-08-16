@@ -1,6 +1,8 @@
-import { io } from "socket.io-client"
+import { io } from 'socket.io-client'
 
-const socket = io('http://localhost:3000', {
+const url = import.meta.env.VITE_URL || 'http://localhost:3000'
+
+const socket = io(url, {
   transports: ['websocket'],
 })
 
