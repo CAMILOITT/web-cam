@@ -1,14 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { socket } from '../../api/sockets/create'
 import css from './FormRoom.module.css'
-import { InfoRoomContext } from '../../context/infoRoom/InfoRoom'
-import { useContext } from 'react'
-import { InfoRoom } from '../../types/infoRoom/interface'
 interface IProps {}
 
 export default function JoinRoom({}: IProps) {
   const navigate = useNavigate()
-  const { setInfoRoom } = useContext(InfoRoomContext)
   function handleOnSubmitSecond(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
@@ -21,16 +17,9 @@ export default function JoinRoom({}: IProps) {
       userCall: userName.value,
     }
 
-    setInfoRoom((infoRoom: InfoRoom) => {
-      return {
-        ...infoRoom,
-        idRoom: createRoom.idRoom,
-        userLocal: createRoom.userCall,
-      }
-    })
-
     localStorage.setItem('idRoom', createRoom.idRoom)
     sessionStorage.setItem('userLocal', createRoom.userCall)
+    sessionStorage.setItem('typeSession', 'remote')
 
     socket.emit('joinRoom', createRoom)
 

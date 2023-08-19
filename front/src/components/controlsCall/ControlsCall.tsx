@@ -12,12 +12,17 @@ interface IProps {
   closeCall?: () => void
 }
 
-export default function ControlsCall({ closeCall }: IProps) {
+export default function ControlsCall({
+  closeCall,
+  videoOff,
+  audioOff,
+  microphoneOff,
+}: IProps) {
   return (
     <div className={css.controls}>
-      <BtnCall svg={MicrophoneIcon} />
-      <BtnCall svg={VideoIcon} />
-      <BtnCall svg={AudioIcon} />
+      <BtnCall svg={MicrophoneIcon} eventClick={microphoneOff}  />
+      <BtnCall svg={VideoIcon} eventClick={videoOff} />
+      <BtnCall svg={AudioIcon} eventClick={audioOff} />
       <BtnCall svg={CallEndIcon} eventClick={closeCall} />
     </div>
   )

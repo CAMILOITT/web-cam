@@ -4,10 +4,11 @@ import css from './Video.module.css'
 interface VideoProps {
   typeConnection: 'local' | 'remote'
   userName: string
+  listAttributes?: { autoPlay?: boolean; muted?: boolean; controls?: boolean }
 }
 
 export const Video = forwardRef<HTMLVideoElement, VideoProps>(
-  ({ userName, typeConnection }: VideoProps, ref) => {
+  ({ userName, typeConnection, listAttributes }: VideoProps, ref) => {
     const [callFocus, setCallFocus] = useState<'local' | 'remote'>('local')
 
     function changeCallFocus(e: React.MouseEvent<HTMLDivElement>) {
@@ -28,7 +29,12 @@ export const Video = forwardRef<HTMLVideoElement, VideoProps>(
         data-call-id="remote"
         onDoubleClick={changeCallFocus}
       >
-        <video ref={ref} className={css.video} muted autoPlay></video>
+        <video
+          ref={ref}
+          className={css.video}
+          autoPlay
+          {...listAttributes}
+        ></video>
         <p className={css.name}> {userName}</p>
       </div>
     )

@@ -4,8 +4,7 @@ import { socket } from '../../api/sockets/create'
 import ControlsCall from '../../components/controlsCall/ControlsCall'
 import Messages from '../../components/messages/Messages'
 import { Video } from '../../components/video/Video'
-import { configurationConnection } from '../../const/webRtc'
-// import { PeerConnection as connect } from '../../api/webRtc/peer'
+import Connection from '../../api/webRtc/peer'
 import css from './Room.module.css'
 interface IProps {}
 
@@ -14,109 +13,49 @@ const constrains = {
   video: true,
 }
 
-// const PeerConnection = new connect().openPeer()
-
-const PeerConnection = new RTCPeerConnection(configurationConnection)
+const peerConnection = new Connection()
 
 export default function Room({}: IProps) {
   const navigate = useNavigate()
   const VideoLocal = useRef<HTMLVideoElement | null>(null)
   const VideoRemote = useRef<HTMLVideoElement | null>(null)
-  // const [localStream, setLocalStream] = useState<MediaStream>()
   const [message, setMessage] = useState('')
   const [hiddenMessage, setHiddenMessage] = useState(true)
+  const [nameRemote, setNameRemote] = useState<null | string>(null)
+  const [nameLocal] = useState(sessionStorage.getItem('userLocal'))
 
   useEffect(() => {
-    // const PeerConnection = new RTCPeerConnection(configurationConnection)
-
-    // console.log(peerConnection)
-    // navigator.mediaDevices.enumerateDevices().then(devices => {
-    //   console.log(devices)
-    //   const hasMicrophone = devices.some(device => device.kind === 'audioinput')
-    //   const hasVideo = devices.some(device => device.kind === 'videoinput')
-    //   const configuration = {
-    //     audio: hasMicrophone,
-    //     video: hasVideo,
-    //   }
-    // })
-
-    // setPeer(PeerConnection)
+    peerConnection.openPeer()
     navigator.mediaDevices
       .getUserMedia(constrains)
       .then(stream => {
         if (!VideoLocal.current) return
         VideoLocal.current.srcObject = stream
-        // setLocalStream(stream)
-        stream.getTracks().forEach(track => {
-          console.log('enviando datos')
-          console.log(track)
-          PeerConnection.addTrack(track, stream)
-        })
+        peerConnection.addTrack(stream)
       })
       .catch(err => {
         console.error(err)
       })
 
-    PeerConnection.onconnectionstatechange = () => {
-      console.log('connection state', PeerConnection.connectionState)
-    }
-    PeerConnection.oniceconnectionstatechange = () => {
-      console.log('ice connection state', PeerConnection.iceConnectionState)
-    }
-
-    PeerConnection.onicecandidateerror = ev => {
-      console.error('ice candidate error', ev)
-    }
-
-    PeerConnection.onicegatheringstatechange = () => {
-      console.log('ice gathering state', PeerConnection.iceGatheringState)
-    }
-    PeerConnection.onsignalingstatechange = () => {
-      console.log('signaling state', PeerConnection.signalingState)
-    }
-
-    PeerConnection.onicecandidate = ev => {
-      if (!ev.candidate) return
-      console.log(ev.candidate)
-      socket.emit('sendCandidate', localStorage.getItem('idRoom'), ev.candidate)
-    }
-
-    PeerConnection.onnegotiationneeded = ev => {
-      console.log('necesita negociación')
-      console.log('negotiation needed', ev)
-    }
-
     socket.on('offer', offer => {
-      PeerConnection.setRemoteDescription(offer).catch(err => {
-        console.error(err)
-      })
-      PeerConnection.createAnswer()
-        .then(answer => {
-          PeerConnection.setLocalDescription(answer)
-          socket.emit('answer', localStorage.getItem('idRoom'), answer)
-        })
-        .catch(err => {
-          console.error(err)
-        })
+      peerConnection.createRemoteOfferAndAnswer(offer)
     })
 
     socket.on('answer', answer => {
-      PeerConnection.setRemoteDescription(answer).catch(err => {
-        console.error(err)
-      })
+      peerConnection.createLocalAnswer(answer)
     })
 
     socket.on('sendCandidate', candidate => {
-      if (!candidate) return
-
-      PeerConnection.addIceCandidate(candidate)
-        .then(() => {
-          console.log('candidate added')
-        })
-        .catch(err => {
-          console.log(err)
-        })
+      peerConnection.addCandidate(candidate)
     })
+
+    peerConnection.searchCandidates()
+    peerConnection.searchErrorCandidate()
+    // events
+    peerConnection.connectionstatechange()
+    peerConnection.gatheringStateChange()
+    peerConnection.iceConnectionStateChange()
+    peerConnection.signalingStateChange()
 
     return () => {
       socket.off('offer')
@@ -127,95 +66,27 @@ export default function Room({}: IProps) {
 
   useEffect(() => {
     socket.on('userJoin', (userRemote: string) => {
-      sessionStorage.setItem('userRemote', userRemote)
-
-      socket.emit(
-        'infoRoom',
-        localStorage.getItem('idRoom'),
-        sessionStorage.getItem('userLocal')
-      )
+      setNameRemote(userRemote)
+      socket.emit('infoRoom', localStorage.getItem('idRoom'), nameLocal)
       initRoom()
     })
 
     socket.on('infoRoom', (userRemote: string) => {
-      sessionStorage.setItem('userRemote', userRemote)
+      setNameRemote(userRemote)
     })
+
     return () => {
       socket.off('userJoin')
       socket.off('infoRoom')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [nameLocal])
 
-  // useEffect(() => {
-  //   socket.on('offer', offer => {
-  //     if (!peer) return
-  //     peer.setRemoteDescription(offer).catch(err => {
-  //       console.error(err)
-  //     })
-  //     peer
-  //       .createAnswer()
-  //       .then(answer => {
-  //         if (!peer) return
-
-  //         peer.setLocalDescription(answer)
-  //         socket.emit('answer', localStorage.getItem('idRoom'), answer)
-  //       })
-  //       .catch(err => {
-  //         console.error(err)
-  //       })
-  //   })
-
-  //   socket.on('answer', answer => {
-  //     if (!peer) return
-  //     peer.setRemoteDescription(answer).catch(err => {
-  //       console.error(err)
-  //     })
-  //   })
-
-  //   socket.on('sendCandidate', candidate => {
-  //     if (!peer) return
-
-  //     console.log('candidato añadido')
-  //     peer.addIceCandidate(candidate)
-  //   })
-  // }, [peer])
-
-  // useEffect(() => {
-  //   if (!peer || !localStream) return
-  //   localStream.getTracks().forEach(track => {
-  //     console.log('enviando datos')
-  //     console.log(track)
-  //     peer.addTrack(track, localStream)
-  //   })
-  // }, [peer, localStream])
-
-  // obtiene el sonido del usuario remote
   useEffect(() => {
-    if (!VideoRemote.current) return
-    PeerConnection.ontrack = ev => {
-      console.log('recibiendo datos')
-      console.log(ev)
-      console.log(ev.streams)
-      // a;adir el parámetro a un useState() trackRemote
-      if (!VideoRemote.current) return
-
-      console.log('a;adiendo al video')
-      VideoRemote.current.srcObject = ev.streams[0]
-    }
+    peerConnection.onTrack(VideoRemote)
   }, [])
 
   function initRoom() {
-    PeerConnection.createOffer()
-      .then(offer => {
-        PeerConnection.setLocalDescription(offer).catch(err => {
-          console.error(err)
-        })
-        socket.emit('offer', localStorage.getItem('idRoom'), offer)
-      })
-      .catch(err => {
-        console.error(err)
-      })
+    peerConnection.createLocalOffer()
     setMessage('usuario conectado')
     setHiddenMessage(false)
     setTimeout(() => {
@@ -224,12 +95,57 @@ export default function Room({}: IProps) {
   }
 
   function closeCall() {
-    PeerConnection.close()
+    peerConnection.closePeer()
     navigate('/')
     localStorage.removeItem('idRoom')
     sessionStorage.removeItem('userLocal')
     sessionStorage.removeItem('userRemote')
   }
+
+  function copyIdRoom() {
+    const idRoom = localStorage.getItem('idRoom')
+    if (!idRoom) return
+    navigator.clipboard.writeText(idRoom)
+    setMessage('id de la llamada copiado')
+    setHiddenMessage(false)
+    setTimeout(() => {
+      setHiddenMessage(true)
+    }, 3000)
+  }
+
+  function videoOff() {
+    // setSenderVideo(prev => !prev)
+    // if (!senderVideo) {
+    //   peerConnection.addTrack(localStream)
+    //   return
+    // }
+    // peerConnection.removeTrack()
+    console.log(peerConnection.getSenders())
+    console.log(peerConnection.getReceivers())
+    navigator.permissions
+      .query({ name: 'camera' as PermissionName })
+      .then(permission => {
+        console.log(permission)
+      })
+  }
+
+  function microphoneOff() {
+    navigator.permissions
+      .query({ name: 'microphone' as PermissionName })
+      .then(permission => {
+        console.log(permission)
+      })
+    // peerConnection.createLocalOffer()
+  }
+
+  function audioOff() {
+    if (!VideoRemote.current) return
+    const { muted } = VideoRemote.current
+    muted === false
+      ? (VideoRemote.current.muted = true)
+      : (VideoRemote.current.muted = false)
+  }
+
   return (
     <main className={css.room}>
       <Messages
@@ -237,44 +153,38 @@ export default function Room({}: IProps) {
         type={'success'}
         message={message}
       />
-      <button onClick={() => console.log(PeerConnection)}>peer</button>
+      <button onClick={() => console.log(peerConnection)}>peer</button>
       <div>
         <Video
           ref={VideoLocal}
-          userName={`${sessionStorage.getItem('userLocal')}`}
+          userName={`${nameLocal}`}
           typeConnection="local"
+          listAttributes={{ muted: true, autoPlay: true }}
         />
-        {
-          /* sessionStorage.getItem('userRemote') &&  */ <Video
+        {nameRemote && (
+          <Video
             ref={VideoRemote}
-            userName={`${sessionStorage.getItem('userRemote')}`}
+            userName={`${nameRemote}`}
             typeConnection="remote"
+            listAttributes={{ autoPlay: true }}
           />
-        }
+        )}
       </div>
-      {!sessionStorage.getItem('userRemote') && (
+      {!nameRemote && (
         <div className={css.messageLink}>
           <p>
             La reunion esta lista comparte el código de la sala con las personas
             que quieras que asistan.
           </p>
-          <button
-            onClick={() => {
-              const idRoom = localStorage.getItem('idRoom')
-              if (!idRoom) return
-              navigator.clipboard.writeText(idRoom)
-              setMessage('id de la llamada copiado')
-              setHiddenMessage(false)
-              setTimeout(() => {
-                setHiddenMessage(true)
-              }, 3000)
-            }}
-          >
-            copiar código de sala
-          </button>
+          <button onClick={copyIdRoom}>copiar código de sala</button>
         </div>
       )}
-      <ControlsCall closeCall={closeCall} />
+      <ControlsCall
+        closeCall={closeCall}
+        videoOff={videoOff}
+        audioOff={audioOff}
+        microphoneOff={microphoneOff}
+      />
     </main>
   )
 }

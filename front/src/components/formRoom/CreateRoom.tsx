@@ -1,15 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { socket } from '../../api/sockets/create'
 import css from './FormRoom.module.css'
-import { useContext } from 'react'
-import { InfoRoomContext } from '../../context/infoRoom/InfoRoom'
-import { InfoRoom } from '../../types/infoRoom/interface'
 interface IProps {}
 
 export default function CreateRoom({}: IProps) {
   const navigate = useNavigate()
-
-  const { setInfoRoom } = useContext(InfoRoomContext)
 
   function handleOnSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -24,14 +19,7 @@ export default function CreateRoom({}: IProps) {
     }
     localStorage.setItem('idRoom', createRoom.idRoom)
     sessionStorage.setItem('userLocal', createRoom.userCall)
-
-    setInfoRoom((infoRoom: InfoRoom) => {
-      return {
-        ...infoRoom,
-        idRoom: createRoom.idRoom,
-        userLocal: createRoom.userCall,
-      }
-    })
+    sessionStorage.setItem('typeSession', 'local')
 
     socket.emit('createRoom', createRoom)
 
