@@ -5,10 +5,14 @@ interface VideoProps {
   typeConnection: 'local' | 'remote'
   userName: string
   listAttributes?: { autoPlay?: boolean; muted?: boolean; controls?: boolean }
+  hiddenVideo?: boolean
 }
 
 export const Video = forwardRef<HTMLVideoElement, VideoProps>(
-  ({ userName, typeConnection, listAttributes }: VideoProps, ref) => {
+  (
+    { userName, typeConnection, listAttributes, hiddenVideo }: VideoProps,
+    ref
+  ) => {
     const [callFocus, setCallFocus] = useState<'local' | 'remote'>('local')
 
     function changeCallFocus(e: React.MouseEvent<HTMLDivElement>) {
@@ -32,8 +36,8 @@ export const Video = forwardRef<HTMLVideoElement, VideoProps>(
         <video
           ref={ref}
           className={css.video}
-          autoPlay
           {...listAttributes}
+          style={hiddenVideo ? { display: 'none' } : undefined}
         ></video>
         <p className={css.name}> {userName}</p>
       </div>

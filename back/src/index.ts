@@ -35,4 +35,12 @@ io.on('connection', socket => {
   socket.on('infoRoom', (room: string, userCreated: string) => {
     socket.to(room).emit('infoRoom', userCreated)
   })
+
+  socket.on('video', (room: string, video: boolean) => {
+    socket.to(room).emit('video', video)
+  })
+
+  socket.on('audio', (room: string, audio: boolean) => {
+    socket.to(room).emit('audio', audio)
+  })
 })

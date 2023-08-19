@@ -23,6 +23,8 @@ export default function Room({}: IProps) {
   const [hiddenMessage, setHiddenMessage] = useState(true)
   const [nameRemote, setNameRemote] = useState<null | string>(null)
   const [nameLocal] = useState(sessionStorage.getItem('userLocal'))
+  const [videoHidden, setVideoHidden] = useState(false)
+  const [audio, setAudio] = useState(false)
 
   useEffect(() => {
     peerConnection.openPeer()
@@ -51,11 +53,6 @@ export default function Room({}: IProps) {
 
     peerConnection.searchCandidates()
     peerConnection.searchErrorCandidate()
-    // events
-    peerConnection.connectionstatechange()
-    peerConnection.gatheringStateChange()
-    peerConnection.iceConnectionStateChange()
-    peerConnection.signalingStateChange()
 
     return () => {
       socket.off('offer')
@@ -75,9 +72,20 @@ export default function Room({}: IProps) {
       setNameRemote(userRemote)
     })
 
+    socket.on('video', (video: boolean) => {
+      console.log(video)
+      setVideoHidden(prev => !prev)
+    })
+    socket.on('audio', (audio: boolean) => {
+      console.log(audio)
+      setAudio(prev => !prev)
+    })
+
     return () => {
       socket.off('userJoin')
       socket.off('infoRoom')
+      socket.off('video')
+      socket.off('audio')
     }
   }, [nameLocal])
 
@@ -114,28 +122,23 @@ export default function Room({}: IProps) {
   }
 
   function videoOff() {
-    // setSenderVideo(prev => !prev)
-    // if (!senderVideo) {
-    //   peerConnection.addTrack(localStream)
-    //   return
-    // }
-    // peerConnection.removeTrack()
     console.log(peerConnection.getSenders())
     console.log(peerConnection.getReceivers())
     navigator.permissions
       .query({ name: 'camera' as PermissionName })
-      .then(permission => {
-        console.log(permission)
+      .then(({ state }) => {
+        state === 'granted' &&
+          socket.emit('video', localStorage.getItem('idRoom'), !videoHidden)
       })
   }
 
   function microphoneOff() {
     navigator.permissions
       .query({ name: 'microphone' as PermissionName })
-      .then(permission => {
-        console.log(permission)
+      .then(({ state }) => {
+        state === 'granted' &&
+          socket.emit('audio', localStorage.getItem('idRoom'), !audio)
       })
-    // peerConnection.createLocalOffer()
   }
 
   function audioOff() {
@@ -166,7 +169,8 @@ export default function Room({}: IProps) {
             ref={VideoRemote}
             userName={`${nameRemote}`}
             typeConnection="remote"
-            listAttributes={{ autoPlay: true }}
+            listAttributes={{ autoPlay: true, muted: audio }}
+            hiddenVideo={videoHidden}
           />
         )}
       </div>

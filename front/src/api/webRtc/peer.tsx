@@ -73,9 +73,7 @@ export default class PeerConnection {
   }
 
   public onTrack(Video: React.MutableRefObject<HTMLVideoElement | null>) {
-    console.log('ejecutando')
     this.peer.ontrack = ev => {
-      console.log('ejecutando ontrack')
       if (!Video.current) return
       Video.current.srcObject = ev.streams[0]
     }
