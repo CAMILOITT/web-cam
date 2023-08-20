@@ -25,6 +25,7 @@ export default function Room({}: IProps) {
   const [nameLocal] = useState(sessionStorage.getItem('userLocal'))
   const [videoHidden, setVideoHidden] = useState(false)
   const [audio, setAudio] = useState(false)
+  const [idRoom] = useState(localStorage.getItem('idRoom'))
 
   useEffect(() => {
     peerConnection.openPeer()
@@ -45,6 +46,11 @@ export default function Room({}: IProps) {
 
     socket.on('answer', answer => {
       peerConnection.createLocalAnswer(answer)
+      // código para ejecutar de nuevo el peer
+      if (!peerConnection.getReceivers().length) return
+      if (peerConnection.getReceivers()[1].track.muted === true && peerConnection.getReceivers()[1].track.enabled === true) {
+        peerConnection.createLocalOffer()
+      }
     })
 
     socket.on('sendCandidate', candidate => {
@@ -64,7 +70,7 @@ export default function Room({}: IProps) {
   useEffect(() => {
     socket.on('userJoin', (userRemote: string) => {
       setNameRemote(userRemote)
-      socket.emit('infoRoom', localStorage.getItem('idRoom'), nameLocal)
+      socket.emit('infoRoom', idRoom, nameLocal)
       initRoom()
     })
 
@@ -72,12 +78,10 @@ export default function Room({}: IProps) {
       setNameRemote(userRemote)
     })
 
-    socket.on('video', (video: boolean) => {
-      console.log(video)
+    socket.on('video', () => {
       setVideoHidden(prev => !prev)
     })
-    socket.on('audio', (audio: boolean) => {
-      console.log(audio)
+    socket.on('audio', () => {
       setAudio(prev => !prev)
     })
 
@@ -87,7 +91,7 @@ export default function Room({}: IProps) {
       socket.off('video')
       socket.off('audio')
     }
-  }, [nameLocal])
+  }, [nameLocal, idRoom])
 
   useEffect(() => {
     peerConnection.onTrack(VideoRemote)
@@ -111,7 +115,6 @@ export default function Room({}: IProps) {
   }
 
   function copyIdRoom() {
-    const idRoom = localStorage.getItem('idRoom')
     if (!idRoom) return
     navigator.clipboard.writeText(idRoom)
     setMessage('id de la llamada copiado')
@@ -122,13 +125,11 @@ export default function Room({}: IProps) {
   }
 
   function videoOff() {
-    console.log(peerConnection.getSenders())
     console.log(peerConnection.getReceivers())
     navigator.permissions
       .query({ name: 'camera' as PermissionName })
       .then(({ state }) => {
-        state === 'granted' &&
-          socket.emit('video', localStorage.getItem('idRoom'), !videoHidden)
+        state === 'granted' && socket.emit('video', idRoom, !videoHidden)
       })
   }
 
@@ -136,8 +137,7 @@ export default function Room({}: IProps) {
     navigator.permissions
       .query({ name: 'microphone' as PermissionName })
       .then(({ state }) => {
-        state === 'granted' &&
-          socket.emit('audio', localStorage.getItem('idRoom'), !audio)
+        state === 'granted' && socket.emit('audio', idRoom, !audio)
       })
   }
 
@@ -156,7 +156,6 @@ export default function Room({}: IProps) {
         type={'success'}
         message={message}
       />
-      <button onClick={() => console.log(peerConnection)}>peer</button>
       <div>
         <Video
           ref={VideoLocal}
