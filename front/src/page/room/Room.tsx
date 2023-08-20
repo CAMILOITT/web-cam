@@ -48,7 +48,10 @@ export default function Room({}: IProps) {
       peerConnection.createLocalAnswer(answer)
       // código para ejecutar de nuevo el peer
       if (!peerConnection.getReceivers().length) return
-      if (peerConnection.getReceivers()[1].track.muted === true && peerConnection.getReceivers()[1].track.enabled === true) {
+      if (
+        peerConnection.getReceivers()[1].track.muted === true &&
+        peerConnection.getReceivers()[1].track.enabled === true
+      ) {
         peerConnection.createLocalOffer()
       }
     })
@@ -59,7 +62,11 @@ export default function Room({}: IProps) {
 
     peerConnection.searchCandidates()
     peerConnection.searchErrorCandidate()
-
+    peerConnection.connectionstatechange(
+      setMessage,
+      setHiddenMessage,
+      setNameRemote
+    )
     return () => {
       socket.off('offer')
       socket.off('answer')
