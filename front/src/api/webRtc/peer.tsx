@@ -1,4 +1,3 @@
-import { configurationConnection } from '../../const/webRtc'
 import { socket } from '../sockets/create'
 
 /**
@@ -8,8 +7,19 @@ import { socket } from '../sockets/create'
 
 export default class PeerConnection {
   private peer: RTCPeerConnection
+  private configuration: RTCConfiguration = {
+    iceServers: [
+      {
+        urls: [
+          'stun:stun.l.google.com:19302',
+          // 'stun:global.stun.twilio.com:3478',
+        ],
+      },
+    ],
+  }
+
   constructor() {
-    this.peer = new RTCPeerConnection(configurationConnection)
+    this.peer = new RTCPeerConnection(this.configuration)
   }
 
   /**
@@ -19,7 +29,7 @@ export default class PeerConnection {
    */
   public openPeer() {
     if (this.peer.signalingState !== 'closed') return
-    this.peer = new RTCPeerConnection(configurationConnection)
+    this.peer = new RTCPeerConnection(this.configuration)
   }
 
   /**
@@ -87,6 +97,7 @@ export default class PeerConnection {
         console.error(err)
       })
   }
+  
   /**
    * @memberof PeerConnection
    *

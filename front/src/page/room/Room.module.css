@@ -7,10 +7,17 @@
   height: 100vh;
 }
 
+.videoContainer{
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
 .messageLink {
+  --marginInline: 15px;
   position: absolute;
-  left: 30px;
-  bottom: 80px;
+  left: 0;
+  bottom: 90px;
   background: var(--bg);
   outline: 1px solid var(--bgComponents);
   font-weight: bold;
@@ -20,7 +27,8 @@
   text-align: center;
   display: grid;
   gap: 10px;
-  max-width: 350px;
+  width: min(350px, calc(100% - var(--marginInline) * 2));
+  margin: 0 var(--marginInline);
 }
 
 .messageLink button {

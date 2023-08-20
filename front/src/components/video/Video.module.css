@@ -1,8 +1,21 @@
 /* llamada */
 .call {
   position: absolute;
-  max-width: 700px;
+  width: max(280px, 60vw);
   transition: 1s;
+  min-height: 187px;
+}
+
+.img {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: red;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  z-index: -1;
 }
 
 .video {
@@ -12,21 +25,28 @@
 
 .name {
   position: absolute;
-  z-index: 1;
   font-weight: bold;
   bottom: 15px;
   left: 20px;
   font-size: 1.1rem;
+  transition: 0.5s;
+}
+
+.nameCenter {
+  left: 50%;
+  translate: -50% 0;
+  font-size: 1.3rem;
 }
 
 .callFocus {
-  left: 50%;
-  top: 50%;
-  translate: -50% -50%;
+  left: calc(50% - max(280px, 65vw) / 2);
+  bottom: 50%;
+  translate: 0 50%;
 }
 
 .callNotFocus {
   left: 10px;
-  bottom: 90px;
-  max-width: 300px;
+  bottom: 10px;
+  width: min(300px, 100%);
+  z-index: 1;
 }

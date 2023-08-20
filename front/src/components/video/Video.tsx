@@ -1,45 +1,51 @@
-import { forwardRef, useState } from 'react'
+import { forwardRef } from 'react'
 import css from './Video.module.css'
+import { statusVideo } from '../../types/video/type'
 
 interface VideoProps {
-  typeConnection: 'local' | 'remote'
+  typeConnection: statusVideo
   userName: string
   listAttributes?: { autoPlay?: boolean; muted?: boolean; controls?: boolean }
   hiddenVideo?: boolean
+  focusVideo?: statusVideo
+  setFocusVideo?: React.Dispatch<React.SetStateAction<statusVideo>>
 }
 
 export const Video = forwardRef<HTMLVideoElement, VideoProps>(
   (
-    { userName, typeConnection, listAttributes, hiddenVideo }: VideoProps,
+    {
+      userName,
+      typeConnection,
+      listAttributes,
+      hiddenVideo,
+      focusVideo,
+      setFocusVideo,
+    }: VideoProps,
     ref
   ) => {
-    const [callFocus, setCallFocus] = useState<'local' | 'remote'>('local')
-
-    function changeCallFocus(e: React.MouseEvent<HTMLDivElement>) {
-      console.log('click')
-      const focus = e.currentTarget.dataset.callId
-      if (focus === 'remote') {
-        setCallFocus('local')
-      } else {
-        setCallFocus('remote')
-      }
+    function changeCallFocus() {
+      if (!setFocusVideo || !focusVideo) return
+      setFocusVideo(prev => (prev === 'local' ? 'remote' : 'local'))
     }
 
     return (
       <div
         className={`${css.call} ${
-          callFocus === typeConnection ? css.callFocus : css.callNotFocus
+          typeConnection === focusVideo ? css.callFocus : css.callNotFocus
         }`}
-        data-call-id="remote"
         onDoubleClick={changeCallFocus}
       >
+        <div className={css.img} ></div>
         <video
           ref={ref}
           className={css.video}
           {...listAttributes}
           style={hiddenVideo ? { display: 'none' } : undefined}
         ></video>
-        <p className={css.name}> {userName}</p>
+        <p className={`${css.name} ${hiddenVideo ? css.nameCenter : ''} `}>
+          {' '}
+          {userName}
+        </p>
       </div>
     )
   }

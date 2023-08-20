@@ -6,6 +6,7 @@ import Messages from '../../components/messages/Messages'
 import { Video } from '../../components/video/Video'
 import Connection from '../../api/webRtc/peer'
 import css from './Room.module.css'
+import { statusVideo } from '../../types/video/type'
 interface IProps {}
 
 const constrains = {
@@ -26,6 +27,7 @@ export default function Room({}: IProps) {
   const [videoHidden, setVideoHidden] = useState(false)
   const [audio, setAudio] = useState(false)
   const [idRoom] = useState(localStorage.getItem('idRoom'))
+  const [focusVideo, setFocusVideo] = useState<statusVideo>('local')
 
   useEffect(() => {
     peerConnection.openPeer()
@@ -58,6 +60,7 @@ export default function Room({}: IProps) {
 
     socket.on('sendCandidate', candidate => {
       peerConnection.addCandidate(candidate)
+      setFocusVideo('remote')
     })
 
     peerConnection.searchCandidates()
@@ -87,6 +90,7 @@ export default function Room({}: IProps) {
 
     socket.on('video', () => {
       setVideoHidden(prev => !prev)
+      setFocusVideo('local')
     })
     socket.on('audio', () => {
       setAudio(prev => !prev)
@@ -163,12 +167,14 @@ export default function Room({}: IProps) {
         type={'success'}
         message={message}
       />
-      <div>
+      <div className={css.videoContainer}>
         <Video
           ref={VideoLocal}
           userName={`${nameLocal}`}
           typeConnection="local"
           listAttributes={{ muted: true, autoPlay: true }}
+          focusVideo={focusVideo}
+          setFocusVideo={setFocusVideo}
         />
         {nameRemote && (
           <Video
@@ -177,6 +183,8 @@ export default function Room({}: IProps) {
             typeConnection="remote"
             listAttributes={{ autoPlay: true, muted: audio }}
             hiddenVideo={videoHidden}
+            focusVideo={focusVideo}
+            setFocusVideo={setFocusVideo}
           />
         )}
       </div>
